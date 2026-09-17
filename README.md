@@ -1,4 +1,4 @@
-# 417_Lab_2
+# Lab 2 Physics Interaction
 
 Lab 2 Physics Interaction (The assignment says Lab one but I assuming this is an error.)
 
