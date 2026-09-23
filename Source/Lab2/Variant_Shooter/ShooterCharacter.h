@@ -31,10 +31,6 @@ class LAB2_API AShooterCharacter : public ALab2Character, public IShooterWeaponH
 
 protected:
 
-	/** Fire weapon input action */
-	UPROPERTY(EditAnywhere, Category ="Input")
-	UInputAction* FireAction;
-
 	/** Switch weapon input action */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* SwitchWeaponAction;

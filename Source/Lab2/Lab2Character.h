@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "InputActionValue.h"
 #include "Lab2Character.generated.h"
 
+class AProjectile;
 class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
-struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -30,6 +31,17 @@ class ALab2Character : public ACharacter
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
+	
+	public:
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+		TSubclassOf<AProjectile> ProjectileClass;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+		float LaunchCooldown = 0.5f;
+
+		float LastLaunchTime = -1.0f;
+
+		void FireProjectile();
 
 protected:
 
@@ -45,6 +57,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* FireAction;
+	
 	/** Mouse Look Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* MouseLookAction;

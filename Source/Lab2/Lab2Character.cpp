@@ -9,6 +9,8 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Lab2.h"
+#include "Engine/World.h"
+#include "Projectile.h"
 
 ALab2Character::ALab2Character()
 {
@@ -45,7 +47,7 @@ ALab2Character::ALab2Character()
 }
 
 void ALab2Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{	
+{   
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
@@ -59,13 +61,20 @@ void ALab2Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ALab2Character::LookInput);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ALab2Character::LookInput);
+
+		// Firing
+		EnhancedInputComponent->BindAction(
+			FireAction,
+			ETriggerEvent::Started,
+			this,
+			&ALab2Character::FireProjectile
+		);
 	}
 	else
 	{
 		UE_LOG(LogLab2, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
-
 
 void ALab2Character::MoveInput(const FInputActionValue& Value)
 {
@@ -117,4 +126,55 @@ void ALab2Character::DoJumpEnd()
 {
 	// pass StopJumping to the character
 	StopJumping();
+}
+
+void ALab2Character::FireProjectile()
+{
+	if (!ProjectileClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ProjectileClass is not assigned."));
+		return;
+	}
+
+	if (!GetWorld())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("World is unavailable. Projectile was not spawned."));
+		return;
+	}
+
+	if (GetWorld()->GetTimeSeconds() - LastLaunchTime < LaunchCooldown)
+	{
+		return;
+	}
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+
+	Controller->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+	FVector ForwardDirection = CameraRotation.Vector();
+
+	FVector SpawnLocation =
+		CameraLocation + (ForwardDirection * 150.0f);
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = GetInstigator();
+
+	AProjectile* Projectile = GetWorld()->SpawnActor<AProjectile>(
+		ProjectileClass,
+		SpawnLocation,
+		CameraRotation,
+		SpawnParams
+	);
+
+	if (!Projectile)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Projectile failed to spawn."));
+		return;
+	}
+
+	Projectile->LaunchProjectile(ForwardDirection);
+
+	LastLaunchTime = GetWorld()->GetTimeSeconds();
 }
